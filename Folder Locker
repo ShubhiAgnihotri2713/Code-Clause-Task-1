@@ -1,0 +1,102 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+
+public class FolderLocker extends JFrame implements ActionListener {
+
+    private JTextField folderPathField;
+    private JPasswordField passwordField;
+    private JButton lockButton;
+    private JButton unlockButton;
+
+    public FolderLocker() {
+        setTitle("Folder Locker");
+        setSize(400, 150);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JLabel folderLabel = new JLabel("Folder Path:");
+        folderPathField = new JTextField(20);
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordField = new JPasswordField(20);
+        lockButton = new JButton("Lock");
+        unlockButton = new JButton("Unlock");
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 2));
+        panel.add(folderLabel);
+        panel.add(folderPathField);
+        panel.add(passwordLabel);
+        panel.add(passwordField);
+        panel.add(lockButton);
+        panel.add(unlockButton);
+
+        lockButton.addActionListener(this);
+        unlockButton.addActionListener(this);
+
+        add(panel);
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == lockButton) {
+            lockFolder();
+        } else if (e.getSource() == unlockButton) {
+            unlockFolder();
+        }
+    }
+
+    private void lockFolder() {
+        String folderPath = folderPathField.getText();
+        char[] passwordChars = passwordField.getPassword();
+        String password = new String(passwordChars);
+
+        File folder = new File(folderPath);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            JOptionPane.showMessageDialog(this, "Folder does not exist!");
+            return;
+        }
+
+        try {
+            // Create a marker file with the password as its name
+            File markerFile = new File(folder, password);
+            markerFile.createNewFile();
+            JOptionPane.showMessageDialog(this, "Folder locked successfully!");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error locking folder: " + ex.getMessage());
+        }
+    }
+
+    private void unlockFolder() {
+        String folderPath = folderPathField.getText();
+        char[] passwordChars = passwordField.getPassword();
+        String password = new String(passwordChars);
+
+        File folder = new File(folderPath);
+        File markerFile = new File(folder, password);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            JOptionPane.showMessageDialog(this, "Folder does not exist!");
+            return;
+        }
+
+        if (!markerFile.exists()) {
+            JOptionPane.showMessageDialog(this, "Folder is not locked with this password!");
+            return;
+        }
+
+        if (markerFile.delete()) {
+            JOptionPane.showMessageDialog(this, "Folder unlocked successfully!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Error unlocking folder!");
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new FolderLocker());
+    }
+}
